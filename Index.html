@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Timer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+  body{
+    margin:0;
+    background:#003300;          /* dunkelgrün außerhalb des Rahmens */
+    color:#fff;
+    font-family:system-ui, sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+  }
+
+  .timer-box{
+    aspect-ratio: 2 / 1;         /* 90° gedreht → breit */
+    width: 400px;
+    border: 30px solid #f5e58a;  /* altes blass-gelb, 5× fett */
+    border-radius: 24px;
+    background:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .timer-display{
+    font-family:'Share Tech Mono', monospace;
+    font-weight:700;
+    color:#ffffff;
+    font-size: 6rem;             /* Schrift füllt den Kasten */
+    line-height:1;
+  }
+
+  .controls{
+    margin-top:25px;
+    display:flex;
+    flex-direction:row;
+    flex-wrap:wrap;
+    gap:12px;
+    justify-content:center;
+  }
+
+  button{
+    padding:10px 18px;
+    background:#222;
+    border:2px solid #fff;
+    border-radius:8px;
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  button:hover{
+    background:#333;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="timer-box">
+  <div id="timer" class="timer-display">00:00</div>
+</div>
+
+<div class="controls">
+  <button id="plus10">+10s</button>
+  <button id="plus60">+1m</button>
+  <button id="minus10">-10s</button>
+  <button id="minus60">-1m</button>
+  <button id="start">Start</button>
+  <button id="pause">Pause</button>
+  <button id="reset">Reset</button>
+</div>
+
+<audio id="alarm" src="alarm.mp3"></audio>
+
+<script>
+  let remaining = 0;
+  let interval = null;
+
+  const timerEl = document.getElementById("timer");
+  const alarmEl = document.getElementById("alarm");
+
+  function format(sec){
+    const m = Math.floor(sec/60);
+    const s = sec % 60;
+    return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+  }
+
+  function render(){
+    timerEl.textContent = format(remaining);
+    timerEl.style.color = (remaining < 60 && remaining > 0) ? "#ff3333" : "#ffffff";
+  }
+
+  function start(){
+    if(interval || remaining <= 0) return;
+    interval = setInterval(()=>{
+      remaining--;
+      render();
+      if(remaining <= 0){
+        clearInterval(interval);
+        interval = null;
+        remaining = 0;
+        render();
+        alarmEl.currentTime = 0;
+        alarmEl.play().catch(()=>{});
+      }
+    },1000);
+  }
+
+  function pause(){
+    if(interval){
+      clearInterval(interval);
+      interval = null;
+    }
+  }
+
+  function reset(){
+    pause();
+    remaining = 0;
+    render();
+  }
+
+  document.getElementById("plus10").onclick = ()=>{ remaining += 10; render(); };
+  document.getElementById("plus60").onclick = ()=>{ remaining += 60; render(); };
+  document.getElementById("minus10").onclick = ()=>{ remaining = Math.max(0, remaining-10); render(); };
+  document.getElementById("minus60").onclick = ()=>{ remaining = Math.max(0, remaining-60); render(); };
+  document.getElementById("start").onclick = start;
+  document.getElementById("pause").onclick = pause;
+  document.getElementById("reset").onclick = reset;
+
+  render();
+</script>
+
+</body>
+</html>
